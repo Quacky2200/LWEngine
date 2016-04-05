@@ -33,10 +33,13 @@ sudo apt-get install lamp-server^
 4. Go to a browser and visit this url http://localhost:80/
 5. Setup LWEngine following the instructions and filling-in the necessary information
 6. The setup will take you to the demo (http://localhost:80/)
+
 #### Development
+
 **Tip**: *It is recommended that you have a web server available to test any changes you make*
 
 **Note**: LWEngine must be configured to allow LWEngine to work
+
 1. Download this repo
 2. Copy the files within the ZIP file to your web server's public directory (Most commonly `/var/www` or `/var/www/html` in Ubuntu, or  `C:\XAMP\htdocs` on Windows using XAMPP)
 3. Start the Web Server
