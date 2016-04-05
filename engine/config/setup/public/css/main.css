@@ -1,0 +1,121 @@
+html, body{
+		width: 100%;
+		height:100%;
+		padding:0;
+		margin:0;
+	}
+	body{
+		font-family: 'Open Sans', sans-serif;
+		font-weight: 100;
+		position: relative;
+		display:table;
+	}
+	body > *, body > * > *, body > * > * > *, body > * > * > * > *,
+	body > * > * > * > * > *{
+		transition: all 0.5s;
+		-moz-transition: all 0.5s;
+		-webkit-transition: all 0.5s;
+		-o-transition: all 0.5s;
+	}
+	slides slide img.setupSpinning{padding:0 10px;opacity: 0;transition: opacity 200ms; -webkit-transition: opacity 200ms; -m0z-transition: opacity 200ms; -o-transition: opacity 200ms}
+	slides slide img.setupSpinning.show{opacity: 1;}
+	/*form{display: inline-block;}*/
+	slides{position: absolute;top: 0;left: 0;height: 100%;width: 100%;overflow: hidden;overflow-y:scroll;}
+	slides slide{width: 100%;height: 100%;position: absolute;left: 100%;display: table;transform: scale(0,0);}
+	
+	slides slide.active{left: 0%;transform: scale(1,1);}
+	slides slide.done{left: -100%;}
+	slides slide form{display: table-cell;vertical-align: middle; text-align:center;}
+	slides slide section:not(.ajax){display: inline-block;position:relative;overflow:hidden;}
+	slides slide section:not(.ajax) > div{min-width: 200px;max-width: 500px;display: inline-block;margin: 0;overflow: hidden;position: relative;border-radius: 5px;text-align: left;opacity: 1;padding: 10px 10px 60px;background: rgb(6,24,44);color: white;max-height: 95%;}
+	slides slide section:not(.ajax) > div > div.SlideControls{position: absolute;bottom: 0;right: 0;padding: 10px;}
+	slides slide section.ajax{display: none;position: absolute;top:0;bottom:0;left:0;right:0;width:100%;height:100%;background: rgba(0,0,0,0.6);color:white;}
+	slides slide section.ajax > div{display: table; overflow:hidden; width: 100%;height:100%;max-height:none;max-width:none;}
+	slides slide section.ajax > div > div{display:table-cell;vertical-align: middle;text-align: center;}
+	h1{font-size: 40px;margin: 5px;font-weight: 100;}
+	h2{font-size: 32px;margin: 4.5px;font-weight: 100;}
+	h3{font-size: 25px;margin: 2.5px;font-weight: 100;}
+	h4{font-size: 18px;margin: 1px;font-weight: 100;}
+	h5{font-size: 14px;margin: 1px;font-weight:100;}
+	input:focus, textarea:focus{outline: 0;}
+
+	p.input.error{
+		display: none;
+		color: red !important;
+		margin:2px;
+	}
+
+	input:focus:not([type='button']):not([type='submit']), textarea:focus{border: 1px solid rgb(0, 70, 255);box-shadow: inset 0 0 4px rgb(0, 250, 250);}
+	
+	input, textarea{padding: 10px;border-radius: 10px;border: 1px solid lightgray;vertical-align: middle;transition: all 0.25s;-moz-transition: all 0.25s;-webkit-transition: all 0.25s;-o-transition: all 0.25s;}
+
+	input[type='checkbox']{
+
+	}
+	input[type='radio']{
+
+	}
+	input[type='submit'], input[type='button']{
+		padding: 8px 10px;
+		cursor: pointer;
+		background: rgb(20,150,240);
+		color: white;
+		border-color: rgb(30,200,254);
+	}
+	.loader:before,
+.loader:after,
+.loader {
+  border-radius: 50%;
+  width: 2.5em;
+  height: 2.5em;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  -webkit-animation: load7 1.8s infinite ease-in-out;
+  animation: load7 1.8s infinite ease-in-out;
+}
+.loader {
+  font-size: 10px;
+  margin: 80px auto;
+  margin: 40px auto;
+  position: relative;
+  text-indent: -9999em;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+}
+.loader:before {
+  left: -3.5em;
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+.loader:after {
+  left: 3.5em;
+}
+.loader:before,
+.loader:after {
+  content: '';
+  position: absolute;
+  top: 0;
+}
+@-webkit-keyframes load7 {
+  0%,
+  80%,
+  100% {
+    box-shadow: 0 2.5em 0 -1.3em #ffffff;
+  }
+  40% {
+    box-shadow: 0 2.5em 0 0 #ffffff;
+  }
+}
+@keyframes load7 {
+  0%,
+  80%,
+  100% {
+    box-shadow: 0 2.5em 0 -1.3em #ffffff;
+  }
+  40% {
+    box-shadow: 0 2.5em 0 0 #ffffff;
+  }
+}
