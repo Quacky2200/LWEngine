@@ -21,6 +21,7 @@ sudo apt-get install apache2 php5 mysql-server php5-mysql
 **Optionally**, install `openssh-server` if you want to control your webserver via another computer using SSH.
 
 **Optionally**, install `system-config-samba` if you want to share directories to another computer using the SMB protocol.
+
 #### Terminal installation with LAMP on Ubuntu
 ```
 sudo apt-get install lamp-server^
@@ -47,7 +48,7 @@ sudo apt-get install lamp-server^
 5. Setup LWEngine following the instructions and filling-in the necessary information
 6. Start development 
 
-**Please read the examples and/or documentation. Your implementation of your website should not interfere with the main functionality of LWEngine, doing so will defeat the purpose of LWEngine itself.**
+**Please read the examples and/or documentation. The implementation of your website should not interfere with the main functionality of LWEngine, doing so will defeat the purpose of LWEngine itself.**
 
 # License
 This software is licensed with the MIT License
