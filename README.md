@@ -12,6 +12,7 @@ These can be installed with these development suites:
 * LAMP (Linux)
 * WampServer (Windows)
 * MAMP (Mac, Windows)
+
 #### Terminal installation without LAMP on Ubuntu
 ```
 sudo apt-get install apache2 php5 mysql-server php5-mysql
