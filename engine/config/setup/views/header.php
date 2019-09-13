@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<title><?=$this->site->formattedTitle?></title>
 	<?php
-	echo $this->getGeneratedTitle($template, true);
-	//Assume we're in our public directory.
-	$template->addMultipleCSS(array(
+
+	$this->echoStylesheets(array(
 		"css/opensans/stylesheet.css",
 		"css/main.css"
 	), true);
-	$template->addMultipleJS(array(
+
+	$this->echoScripts(array(
 		"js/jquery-1.11.2.min.js",
 		"js/jquery-1.11.2.min.js",
 		"js/jquery-migrate-1.2.1.min.js",
 		"js/script.js"
 	), true);
-	$template->echoCSSAndJSDependencies();
 	?>
 </head>
 <body>

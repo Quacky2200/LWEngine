@@ -1,73 +1,119 @@
 <?php
-$time = microtime();
-$time = explode(' ', $time);
-$time = $time[1] + $time[0];
-$start = $time;
-class ErrorHandler{
+
+require_once(__DIR__ . '/vendor/autoload.php');
+
+class ErrorHandler {
+
+	private static $enabled = false;
+
+	private static $handler = __CLASS__ . '::defaultHandler';
+	private static $shutdownRegistered = false;
+
 	private static $errorHTML = "
 		<html>
 			<head>
 				<title>{errorName}</title>
 				<style>
-					html{display: table;width:100%;height:100%;}
-					body{font-family: Arial, Helvetica, sans-serif; text-align: center;display: table-cell;vertical-align: middle;}
+					html{width:100%;height:100%;}
+					body{font-family: Arial, Helvetica, sans-serif; text-align: center;}
+					div {display: table; width: 100%; height: 100%}
+					div div {display: table-cell; vertical-align: middle;}
+					h1, h2, h3, h4 {margin: 0; font-weight: 100;}
+					pre {min-width: 700px; display: inline-block; white-space: pre-wrap; max-height: 25em; overflow: scroll}
 				</style>
 			</head>
 			<body>
-				<h1>Error {errorCode}: {errorName}</h1>
-				<h4>{errorDescription}</h4>
+				<div>
+					<div>
+						<h1>Error {errorCode}: {errorName}</h1>
+						<pre style='text-align: {errorAlignment}'>{errorDescription}</pre>
+					</div>
+				</div>
 			</body>
 		</html>
 	";
-	public static function setErrorHTML($code){
+
+	public static function setHandler($obj) {
+		if ($obj === null) {
+			$obj = __CLASS__ . '::defaultHandler';
+		}
+		static::$handler = $obj;
+		static::stop();
+		static::start();
+	}
+
+	public static function setErrorHTML($code) {
 		self::$errorHTML = $code;
 	}
-	public static function primitiveError($errorCode, $errorName, $errorDescription){
-		$errorCodeReplace = str_replace("{errorCode}", $errorCode, self::$errorHTML);
-		$errorNameReplace = str_replace("{errorName}", $errorName, $errorCodeReplace);
-		$errorDescriptionReplace = str_replace("{errorDescription}", $errorDescription, $errorNameReplace);
-		die($errorDescriptionReplace);
+
+	public static function defaultHandler($error) {
+		$str = str_replace("{errorCode}", $error['code'], self::$errorHTML);
+		$str = str_replace("{errorName}", $error['name'], $str);
+		$str = str_replace("{errorDescription}", $error['description'], $str);
+		if (stripos($error['description'], 'stack trace') !== false) {
+			$alignment = 'left';
+		} else {
+			$alignment = 'center';
+		}
+		$str = str_replace('{errorAlignment}', $alignment, $str);
+		die($str);
 	}
-	public static function exceptionHandler($errno, $errstr, $errfile, $errline){
-		ob_clean();
-		$errorCase = array(E_WARNING=>"Warning!", E_ERROR=>"Error!", E_USER_ERROR=>"User Error", E_USER_WARNING=>"User Warning", E_USER_NOTICE=>"User Notice");
-		self::primitiveError(500, (array_key_exists($errno, $errorCase) ? $errorCase[$errno] : "An unknown error occurred"), $errstr . "<br/>Line " . $errline . " in " . $errfile);
+
+	public static function primitiveError(
+		$errorCode = 500,
+		$errorName = 'Internal Server Error',
+		$errorDescription = null
+	) {
+		if (ob_get_status()) {
+			ob_end_clean();
+		}
+		call_user_func_array(static::$handler, array(
+			array(
+				'code' => $errorCode,
+				'name' => $errorName,
+				'description' => $errorDescription
+			)
+		));
 	}
-	public static function fatalHandler(){
+
+	public static function exceptionHandler($num, $msg, $file, $line) {
+		$errorCase = array(
+			E_WARNING => "Warning!",
+			E_ERROR => "Error!",
+			E_USER_ERROR => "User Error",
+			E_USER_WARNING => "User Warning",
+			E_USER_NOTICE => "User Notice",
+		);
+		$header = (isset($errorCase[$num]) ? $errorCase[$num] : "An unknown error occurred");
+		self::primitiveError(500, $header, $msg . "Line ${line} in ${file}", 'left');
+	}
+
+	public static function fatalHandler() {
 		$error = error_get_last();
-		if(self::$Enabled && $error !== null){
-			$errorMsg = $error['message'] . ' on line ' . $error['line'] . "<br/>(" . $error['file'] . ")";
-			self::primitiveError(500, "Fatal error occurred", $errorMsg);
+		if (self::$enabled && $error !== null) {
+			$errorMsg = $error['message'] . ' on line ' . $error['line'] . " (" . $error['file'] . ")";
+			self::primitiveError(500, "Fatal error occurred", $errorMsg, 'left');
 		}
 	}
-	private static $Enabled = false;
-	public static function start(){
+
+	public static function start() {
 		error_reporting(0);
-		self::$Enabled = true;
-		set_error_handler(__CLASS__ . '::exceptionHandler', E_ALL);
-		register_shutdown_function(__CLASS__ . '::fatalHandler');
+		self::$enabled = true;
+		set_error_handler(__CLASS__ . '::exceptionHandler', E_ERROR);
+		if (!static::$shutdownRegistered) {
+			register_shutdown_function(__CLASS__ . '::fatalHandler');
+			static::$shutdownRegistered = true;
+		}
 	}
-	public static function stop(){
-		self::$Enabled = false;
+
+	public static function stop() {
+		self::$enabled = false;
 		error_reporting(E_ALL);
 		restore_error_handler();
-		register_shutdown_function("exit");
 	}
 }
+
 ErrorHandler::start();
 
 (@include_once "engine/Engine.php") or ErrorHandler::primitiveError(500, "Missing Engine class.");
-$engine = new Engine();
-//TODO: Remove debugging footer when project is complete
-$time = microtime();
-$time = explode(' ', $time);
-$time = $time[1] + $time[0];
-$finish = $time;
-$total_time = round(($finish - $start), 4);
-function convert($size)
-{
-    $unit=array('b','kb','mb','gb','tb','pb');
-    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
-}
-?>
-<div class="footer">Finished in <?php echo $total_time;?> seconds using <?php echo convert(memory_get_usage(false));?> w/ <?php echo PHP_VERSION;?></div>
+LWEngine\Engine::instance()->run();

@@ -1,16 +1,19 @@
 <?php
-class Element{
+class Element {
+
 	public $tagname;
 	public $elements;
 	public $attributes;
 	public $inline = false;
-	public function __construct($tagname, $attributes = null, $elements = null, $inline = false){
+
+	public function __construct($tagname, $attributes = null, $elements = null, $inline = false) {
 		$this->tagname = $tagname;
 		$this->attributes = $attributes ?: array();
 		$this->elements = $elements ?: array();
 		$this->inline = $inline;
 	}
-	private function recurseElements($elements){
+
+	private function recurseElements($elements) {
 		if(is_array($elements)){
 			$HTML = "";
 			foreach($elements as $element){
@@ -23,9 +26,10 @@ class Element{
 			return $elements;
 		}
 	}
-	public function toHTML(){
+
+	public function toHTML() {
 		$HTML = '<' . $this->tagname . " " . $this->getAttributes();
-		if($this->inline){
+		if ($this->inline) {
 			return $HTML . '/>';
 		} else {
 			$HTML .= ">";
@@ -33,16 +37,18 @@ class Element{
 			return $HTML . "</" . $this->tagname . '>';
 		}
 	}
-	public function getAttributes(){
-		if(is_array($this->attributes)){
+
+	public function getAttributes() {
+		if (is_array($this->attributes)) {
 			$attributes = "";
-			foreach($this->attributes as $key=>$value){
+			foreach ($this->attributes as $key=>$value) {
 				$attributes .= $key . "=\"" . $value . "\" ";
 			}
+
 			return $attributes;
 		}
-		return null;
 
+		return null;
 	}
 }
 ?>
