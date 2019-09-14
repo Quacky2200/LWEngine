@@ -21,7 +21,7 @@ class Engine {
 
 	public function __construct() {
 		// Start allowing details to be saved/configured
-		// self::startSession();
+		self::startSession();
 
 		// Must be at least PHP 5.6.0
 		$versionRequired = "5.6.0";
@@ -74,6 +74,7 @@ class Engine {
 		}
 
 		$site_name = $this->getConfiguredSiteName();
+
 		if (($site = self::getSitePath($site_name)) && !is_null($site)) {
 			$this->useSite($site);
 		} else {
@@ -277,7 +278,7 @@ class Engine {
 	 */
 	public final static function resolvePath($path) {
 		$spath = str_replace('\\', '/', $path);
-		$parts = explode('/', $spath);
+		$parts = explode('/', preg_replace("#/+#","/", $spath));
 		$absolutes = array();
 		foreach ($parts as $part) {
 			if ('.' == $part) continue;
@@ -312,9 +313,19 @@ class Engine {
 	 * @return string    Root Directory
 	 */
 	protected final function getRemoteDir() {
-		$local = realpath($this->localDir);
-		$engine = realpath($_SERVER['DOCUMENT_ROOT']);
-		return str_replace($engine, '', $local);
+		static $remote;
+
+		if ($remote === null) {
+			$dir = $this->getLocalDir();
+			$pos = strrpos($dir, dirname($_SERVER['SCRIPT_NAME']));
+			if ($pos === false) {
+				// Something's gone very wrong. Can't figure out root path.
+				throw new \Exception('Unable to find remote path');
+			}
+			$remote = substr($dir, $pos);
+		}
+
+		return $remote;
 	}
 
 	/**
@@ -336,9 +347,7 @@ class Engine {
 	 * @return string    Root Directory
 	 */
 	protected final function getRemoteRootDir() {
-		$engine = Engine::resolvePath($this->getLocalDir() . '/../../');
-		$local = Engine::resolvePath($this->getLocalDir());
-		return str_replace($engine, '', $local);
+		return Engine::resolvePath($this->remoteDir, '/../');
 	}
 
 	/**
@@ -350,18 +359,31 @@ class Engine {
 	 * @return string
 	 */
 	public function getRemoteAbsolutePath($path) {
+		static $server, $local, $remote;
+
 		// Returns nothing if the path is already an absolute address
 		if (preg_match('/^(https?:\/\/|javascript:|(ftp|file|blob)?:\/\/)/', $path)) {
 			return $path;
 		}
 
-		$protocol = $this->isSecure() ? 'https:' : 'http:';
-		$port = $_SERVER['SERVER_PORT'];
-		$host = $_SERVER['HTTP_HOST'] . ($port != 80 && $port != 443 ? ":${port}" : '');
-		$local = $this->resolvePath($this->getLocalRootDir());
+		if ($server === null) {
+			$protocol = $this->isSecure() ? 'https:' : 'http:';
+			$port = $_SERVER['SERVER_PORT'];
+			$host = $_SERVER['HTTP_HOST'] . ($port != 80 && $port != 443 ? ":${port}" : '');
+			$server = "${protocol}//${host}";
+		}
+
+		if ($local === null) {
+			$local = $this->getLocalRootDir();
+		}
+
+		if ($remote === null) {
+			$remote = $this->getRemoteRelativePath('../');
+		}
+
 		$path = $this->resolvePath($path);
-		$path = '/' . $this->getRemoteRelativePath('../') . ltrim(str_replace($local, '', $path), '/');
-		return "${protocol}//${host}${path}";
+		$path =  $this->resolvePath($remote . '/' . ltrim(str_replace($local, '', $path), '/'));
+		return "${server}${path}";
 	}
 
 	/**
@@ -373,12 +395,18 @@ class Engine {
 	 * @return string            Relative Remote Path
 	 */
 	public function getRemoteRelativePath($path) {
+		static $root;
+
 		// Returns nothing if the path is already an absolute address
 		if (preg_match('/^(https?:\/\/|javascript:|(ftp|file|blob)?:\/\/)/', $path)) {
 			throw new \Exception('Can only accept relative paths');
 		}
 
-		return $this->resolvePath($this->getRemoteRootDir() . '/' . ltrim(str_replace(__DIR__, '', $path), '/'));
+		if ($root === null) {
+			$root = $this->getRemoteRootDir();
+		}
+
+		return $this->resolvePath($root . '/' . ltrim(str_replace(__DIR__, '', $path), '/'));
 	}
 
 	/**
@@ -397,16 +425,17 @@ class Engine {
 	/**
 	 * Fixes URL paths.
 	 *
-	 * This function attepts to fix URL paths that have no start and end slash.
+	 * This function attempts to fix URL paths that have no start and end slash.
 	 *
 	 * If the URL contains HTTP(S):// then the fix will not be applied as it
-	 * would always return /https://. Similiarly if we suspect that the file
-	 * is a filepath due to the ending (e.g. .js, .json, .txt, .jpeg, etc.)
+	 * would always return /https://. Similiarly if we suspect that the path
+	 * is a file due to the extension (e.g. .js, .json, .txt, .jpeg, etc.)
 	 * then we will also prevent this from being fixed as it would always
 	 * return file.jpeg/
 	 *
 	 * Some may prefer this to be forced with non-compliant URL schemes, where
-	 * a person may use 'https://example.com/picture.jpeg/download'
+	 * a person may use 'https://example.com/picture.jpeg/download' and can be
+	 * forced with forceStart/forceStart.
 	 *
 	 * @param  string  $path          The URL path to fix
 	 * @param  boolean $forceStart    Whether to prevent start URL checks
@@ -531,8 +560,13 @@ class Engine {
 	 * @return string|null     The entry-point filepath or null.
 	 */
 	public function getSitePath($name) {
-		$find = __DIR__ . "/sites/${name}/${name}.php";
-		return (file_exists($find) ? realpath($find) : null);
+		$find = glob(__DIR__ . "/sites/*/*.php");
+		foreach ($find as $i => $file) {
+			if (strtolower($file) == strtolower(__DIR__ . "/sites/${name}/${name}.php")) {
+				return (file_exists($file) ? realpath($file) : null);
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -626,6 +660,7 @@ class Engine {
 			"Click the link if redirection was not successful" +
 			"<script>document.getElementById('redirect_me').click();</script>";
 		}
+		die();
 	}
 
 	/**
@@ -754,6 +789,8 @@ class Engine {
 				return $this->getDatabase();
 			case 'site':
 				return $this->site;
+			case 'controller':
+				return $this->site->controller;
 			case 'localDir':
 				return $this->getLocalDir();
 			case 'remoteDir':
@@ -777,6 +814,7 @@ class Engine {
 			case 'db':
 			case 'database':
 			case 'site':
+			case 'controller':
 			case 'localDir':
 			case 'remoteDir':
 			case 'localRootDir':

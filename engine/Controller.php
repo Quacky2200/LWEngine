@@ -34,7 +34,7 @@ abstract class Controller {
 		return $this->site->render($file, $data);
 	}
 
-		/**
+	/**
 	 * Render.
 	 *
 	 * This function renders a view file with some accompanying data and echoes
@@ -45,19 +45,36 @@ abstract class Controller {
 	 * @return void
 	 */
 	public function renderOut($file, $data = null) {
+		$this->getRemoteDir();
 		echo $this->site->render($file, $data);
 	}
 
 	protected final function getLocalDir() {
-		// Returns the local directory for the page
-		$reflectionClass = new \ReflectionClass(get_class($this));
-		return realpath(dirname($reflectionClass->getFileName()));
+		static $local;
+
+		if ($local === null) {
+			// Returns the local directory for the page
+			$reflectionClass = new \ReflectionClass(get_class($this));
+			return realpath(dirname($reflectionClass->getFileName()));
+		}
+
+		return $local;
 	}
 
 	protected final function getRemoteDir() {
-		$engine = realpath($_SERVER['DOCUMENT_ROOT']);
-		$local = Engine::resolvePath($this->localDir);
-		return str_replace($engine, '', $local);
+		static $remote;
+
+		if ($remote === null) {
+			$dir = $this->getLocalDir();
+			$pos = strrpos($dir, $this->engine->remoteDir);
+			if ($pos === false) {
+				// Something's gone very wrong. Can't figure out root path.
+				throw new \Exception('Unable to find remote path');
+			}
+			$remote = substr($dir, $pos);
+		}
+
+		return $remote;
 	}
 
 	public function __get($name) {
