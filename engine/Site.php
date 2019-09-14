@@ -374,7 +374,7 @@ abstract class Site {
 				// Something's gone very wrong. Can't figure out root path.
 				throw new \Exception('Unable to find remote path');
 			}
-			$remote =  substr($dir, $pos);
+			$remote = substr($dir, $pos);
 		}
 
 		return $remote;

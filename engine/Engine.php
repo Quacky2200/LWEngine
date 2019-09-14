@@ -300,9 +300,15 @@ class Engine {
 	 * @return string    Root Directory
 	 */
 	protected final function getLocalDir() {
-		// Returns the local directory for the page
-		$reflectionClass = new \ReflectionClass(get_class($this));
-		return realpath(dirname($reflectionClass->getFileName()));
+		static $local;
+
+		if ($local === null) {
+			// Returns the local directory for the page
+			$reflectionClass = new \ReflectionClass(get_class($this));
+			$local = realpath(dirname($reflectionClass->getFileName()));
+		}
+
+		return $local;
 	}
 
 	/**

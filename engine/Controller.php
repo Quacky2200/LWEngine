@@ -54,7 +54,7 @@ abstract class Controller {
 		if ($local === null) {
 			// Returns the local directory for the page
 			$reflectionClass = new \ReflectionClass(get_class($this));
-			return realpath(dirname($reflectionClass->getFileName()));
+			$local = realpath(dirname($reflectionClass->getFileName()));
 		}
 
 		return $local;
