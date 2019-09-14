@@ -45,7 +45,6 @@ abstract class Controller {
 	 * @return void
 	 */
 	public function renderOut($file, $data = null) {
-		$this->getRemoteDir();
 		echo $this->site->render($file, $data);
 	}
 
